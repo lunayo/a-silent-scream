@@ -17,9 +17,6 @@ export default class App extends Component {
         <div className="canvas-container">
           <canvas className="output_canvas"></canvas>
         </div>
-        <div>
-          <p>black: neutral, red: anger, green: disgust, purple: fear, yellow: joy, blue: sad, orange: surprise</p>
-        </div>
         <div className="loading">
           <div className="spinner"></div>
           <div className="message">
@@ -86,6 +83,14 @@ export default class App extends Component {
         drawingUtils.drawRectangle(
           canvasCtx, boundingBox,
           {color: colors[prediction], lineWidth: 4, fillColor: '#00000000'});
+        const aspect = canvasElement.width / results.image.width;
+        console.log(aspect);
+
+        canvasCtx.font = '25px serif';
+        canvasCtx.fillStyle = colors[prediction];
+        const textPadding = 10;
+        canvasCtx.fillText(classes[prediction], x * aspect + textPadding,
+           (y + width) * aspect - textPadding, width * aspect);
       }
       canvasCtx.restore();
     }
