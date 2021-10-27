@@ -12,7 +12,7 @@ export default class App extends Component {
   
   render(){
     return (
-      <div class="container">
+      <div class="main-container">
         <video className="input_video"></video>
         <div className="canvas-container">
           <canvas className="output_canvas"></canvas>
@@ -33,7 +33,7 @@ export default class App extends Component {
     const canvasCtx = canvasElement.getContext('2d');
     const colors = ['red', 'green', 'purple', 'yellow', 'blue', 'orange', 'black'];
     const classes = ['angry', 'disgust', 'fear', 'happy', 'sad', 'surprise', 'neutral'];
-    const model = await tf.loadGraphModel('http://localhost:3000/model/model.json');
+    const model = await tf.loadGraphModel('https://sarajida.simplydecode.com/model/model.json');
 
     const spinner = document.querySelector('.loading');
     spinner.ontransitionend = () => {
