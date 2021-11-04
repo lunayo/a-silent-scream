@@ -114,6 +114,8 @@ var LauncherSection = function (shared) {
   function setupTextContainer() {
     textContainer = document.createElement('div');
     textContainer.setAttribute("id", "text-container");
+    textContainer.style.top = 0;
+    textContainer.style.width = '500px';
     textContainer.style.position = 'absolute';
 
     title = document.createElement('p');
@@ -167,7 +169,7 @@ var LauncherSection = function (shared) {
     
     text42 = document.createElement('span');
     text42.setAttribute("class", "fade-in-text");
-    text42.style.animationDelay = "7s";
+    text42.style.animationDelay = "6.5s";
     text42.style.fontSize = "1em";
     text4Span2 = document.createElement('span');
     text4Span2.textContent = "OUTCOME";
@@ -179,8 +181,8 @@ var LauncherSection = function (shared) {
     textContainer.appendChild(text4);
 
     text5 = document.createElement('p');
-    text5.setAttribute("class", "fade-in-text");
-    text5.style.animationDelay = "9s";
+    text5.setAttribute("class", "fade-in-text camera-on");
+    text5.style.animationDelay = "8.5s";
     text5.style.fontSize = "1.8em";
     text5Span = document.createElement('span');
     text5Span.textContent = "REACTION";
@@ -195,7 +197,7 @@ var LauncherSection = function (shared) {
     text5.appendChild(document.createTextNode(","));
 
     text6 = document.createElement('span');
-    text6.setAttribute("class", "fade-in-text");
+    text6.setAttribute("class", "fade-in-text camera-on");
     text6.style.fontSize = "1em";
     text6Span = document.createElement('span');
     text6Span.textContent = "ON";
@@ -204,8 +206,22 @@ var LauncherSection = function (shared) {
     text6.appendChild(text6Span);
     text6.appendChild(document.createTextNode("."));
     text5.appendChild(text6);
-    
+
     textContainer.appendChild(text5);
+
+    text6Alt = document.createElement('span');
+    text6Alt.setAttribute("class", "fade-in-text camera-off");
+    text6Alt.style.display = 'none';
+    text6Alt.style.fontSize = "1.8em";
+    text6AltSpan = document.createElement('span');
+    text6AltSpan.textContent = "CAMERA";
+    text6AltSpan.style.fontSize = "1.3em";
+    text6Alt.appendChild(document.createTextNode("Looks like you have your "));
+    text6Alt.appendChild(text6AltSpan);
+    text6Alt.appendChild(document.createTextNode(" blocked from being used on this page."));
+    text6Alt.appendChild(document.createTextNode(" Go to your browser settings to change that."));
+    
+    textContainer.appendChild(text6Alt);
 
     return textContainer;
   }
@@ -219,10 +235,36 @@ var LauncherSection = function (shared) {
     });
   }
 
+  function toogleCameraRequestText(isCameraOff) {
+    const cameraOnElements = document.getElementById('text-container').getElementsByClassName('camera-on');
+    const cameraOffElements = document.getElementById('text-container').getElementsByClassName('camera-off');
+    if(isCameraOff) {
+      cameraOnElements.forEach(element => {
+        element.style.display = 'none';
+      });
+      cameraOffElements.forEach(element => {
+        element.style.display = 'block';
+        element.classList.remove('text-animation'); // reset animation
+        void element.offsetWidth; // trigger reflow
+        element.classList.add('text-animation'); // start animation
+      });
+    } else {
+      cameraOnElements.forEach(element => {
+        element.style.display = 'block';
+      });
+      cameraOffElements.forEach(element => {
+        element.style.display = 'none';
+        element.classList.remove('text-animation'); // reset animation
+      });
+    }
+  }
+
   function setupCameraText() {
-    textContainer = document.createElement('div');
-    textContainer.setAttribute("id", "camera-text-container");
-    textContainer.style.position = 'absolute';
+    cameraTextContainer = document.createElement('div');
+    cameraTextContainer.setAttribute("id", "camera-text-container");
+    cameraTextContainer.style.position = 'absolute';
+    cameraTextContainer.style.top = 0;
+    cameraTextContainer.style.width = '500px';
 
     title = document.createElement('p');
     title.setAttribute("class", "fade-in-text");
@@ -238,9 +280,9 @@ var LauncherSection = function (shared) {
     title.appendChild(titleSpan);
     title.appendChild(document.createTextNode(" to "));
     title.appendChild(titleSpan2);
-    textContainer.appendChild(title);
+    cameraTextContainer.appendChild(title);
 
-    return textContainer;
+    return cameraTextContainer;
   }
 
   function startCameraTextAnimation() {
@@ -284,8 +326,6 @@ var LauncherSection = function (shared) {
     uiContainer.style.marginTop = "30px";
 
     textContainer = setupTextContainer();
-    textContainer.style.top = 0;
-    textContainer.style.width = '500px';
     uiContainer.appendChild(textContainer);
 
     cameraText = setupCameraText();
@@ -297,10 +337,9 @@ var LauncherSection = function (shared) {
     buttonEnter.style.width = 180 + 'px';
     buttonEnter.addEventListener('click', function () {
 
-      // startTextAnimation();
+      startTextAnimation();
       buttonEnter.style.display = 'none';
-      buttonStart.top = textContainer.offsetHeight + 'px';
-      // buttonStart.style.animationDelay = "10s";
+      buttonStart.style.animationDelay = "10s";
       buttonStart.classList.add('text-animation'); 
 
       // isLoading = true;
@@ -330,50 +369,58 @@ var LauncherSection = function (shared) {
     shared.signals.loadItemCompleted.add(loading.completeItem);
 
     buttonStart = createRolloverButton("30px 0 0 85px", "/files/start_idle.png", "/files/start_rollover.png");
-    buttonStart.style.opacity = '0';
+    buttonStart.style.opacity = '0'; 
     buttonStart.addEventListener('click', function () {
-      isLoading = true;
-      loading.getDomElement().style.display = 'block';
+      // check if camera permission is given
+      navigator.mediaDevices.getUserMedia( { audio: false, video: true } )
+      .then( ( stream ) => {
+        
+        isLoading = true;
+        textContainer.style.display = 'none';
+        loading.getDomElement().style.display = 'block';
+        buttonStart.style.display = "none";
 
-      buttonStart.style.display = "none";
+        cameraOutput.style.display = "block";
+        cameraOutput.style.zIndex = "200";
+        // show the camera
+        const cameraWidth = 640;
+        const cameraHeight = 480;
+        const colors = ['red', 'green', 'purple', 'yellow', 'blue', 'orange', 'black'];
+        const canvasCtx = cameraOutput.getContext('2d');
+        shared.emotion.init_camera(cameraInput, cameraWidth, cameraHeight, function(image, result) {
+            if(!isCameraLoaded) {
+              startCameraTextAnimation();
+              isCameraLoaded = true;
+              isLoading = false;
+              shared.signals.loadItemCompleted.dispatch();
+            }
+            width = cameraOutput.width;
+            height = cameraOutput.height;
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, width, height);
+            canvasCtx.drawImage(image, 0, 0, width, height);
+            drawRectangle(
+                canvasCtx, result.boundingBox,
+                {color: colors[result.prediction], lineWidth: 4, fillColor: '#00000000'});
+            canvasCtx.restore();
 
-      cameraOutput.style.display = "block";
-      cameraOutput.style.zIndex = "200";
-      // show the camera
-      const cameraWidth = 640;
-      const cameraHeight = 480;
-      const colors = ['red', 'green', 'purple', 'yellow', 'blue', 'orange', 'black'];
-      const canvasCtx = cameraOutput.getContext('2d');
-      shared.emotion.init_camera(cameraInput, cameraWidth, cameraHeight, function(image, result) {
-          if(!isCameraLoaded) {
-            startCameraTextAnimation();
-            isCameraLoaded = true;
-            isLoading = false;
-            shared.signals.loadItemCompleted.dispatch();
-          }
-          width = cameraOutput.width;
-          height = cameraOutput.height;
-          canvasCtx.save();
-          canvasCtx.clearRect(0, 0, width, height);
-          canvasCtx.drawImage(image, 0, 0, width, height);
-          drawRectangle(
-              canvasCtx, result.boundingBox,
-              {color: colors[result.prediction], lineWidth: 4, fillColor: '#00000000'});
-          canvasCtx.restore();
+            if (result.prediction == 3) {
+              cameraOutput.style.display = 'none';
+              shared.signals.showfilm.dispatch();
+            }
+        });
 
-          if (result.prediction == 3) {
-            cameraOutput.style.display = 'none';
-            shared.signals.showfilm.dispatch();
-          }
+        shared.emotion.start_camera();
+
+        shared.signals.loadItemAdded.dispatch();
+        shared.signals.loadItemAdded.dispatch();
+        setTimeout(function(){ 
+          shared.signals.loadItemCompleted.dispatch();
+        }, 500); 
+      }, e => {
+        // camera permission denied
+        toogleCameraRequestText(true);
       });
-
-      shared.emotion.start_camera();
-
-      shared.signals.loadItemAdded.dispatch();
-      shared.signals.loadItemAdded.dispatch();
-      setTimeout(function(){ 
-        shared.signals.loadItemCompleted.dispatch();
-      }, 1500);  
     }, false);
     uiContainer.appendChild(buttonStart);
 
@@ -476,7 +523,6 @@ var LauncherSection = function (shared) {
   this.resize = function (width, height) {
 
     clouds.resize(width, height);
-
     if (title) {
 
       title.style.top = '60px';
@@ -488,11 +534,18 @@ var LauncherSection = function (shared) {
       textContainer.style.left = ( window.innerWidth - 500 ) / 2 + 'px';
     }
 
+    if (cameraTextContainer) {
+      cameraTextContainer.style.left = ( window.innerWidth - 500 ) / 2 + 'px';
+    }
+
     if (buttonEnter) {
 
       buttonEnter.style.top = '210px';
       buttonEnter.style.left = buttonStart.style.left = ( window.innerWidth - 358 ) / 2 + 'px';
-      buttonStart.style.top = textContainer.offsetHeight - 20 + 'px';
+    }
+
+    if (buttonStart) {
+      buttonStart.style.top = textContainer.clientHeight - 20 + 'px';
     }
 
     if (loading) {
