@@ -369,7 +369,8 @@ var LauncherSection = function (shared) {
     shared.signals.loadItemCompleted.add(loading.completeItem);
 
     buttonStart = createRolloverButton("30px 0 0 85px", "/files/start_idle.png", "/files/start_rollover.png");
-    buttonStart.style.opacity = '0'; 
+    buttonStart.style.opacity = '0';
+    buttonStart.style.top = '332px';
     buttonStart.addEventListener('click', function () {
       // check if camera permission is given
       navigator.mediaDevices.getUserMedia( { audio: false, video: true } )
@@ -544,10 +545,6 @@ var LauncherSection = function (shared) {
       buttonEnter.style.left = buttonStart.style.left = ( window.innerWidth - 358 ) / 2 + 'px';
     }
 
-    if (buttonStart) {
-      buttonStart.style.top = textContainer.clientHeight - 20 + 'px';
-    }
-
     if (loading) {
 
       loading.getDomElement().style.top = '215px';
@@ -569,8 +566,8 @@ var LauncherSection = function (shared) {
         width = windowWidth;
         height = width * aspect;
     }
-    cameraOutput.style.top = ( window.innerHeight - height ) / 3  - 30 + 'px';;
-    cameraOutput.style.left = ( window.innerWidth - width ) / 2 + 'px';;
+    cameraOutput.style.top = ( window.innerHeight - height ) / 3  - 30 + 'px';
+    cameraOutput.style.left = ( window.innerWidth - width ) / 2 + 'px';
     cameraOutput.width = width;
     cameraOutput.height = height;
 
