@@ -180,15 +180,16 @@ var FilmSection = function (shared) {
 
     var mouseX = 0, mouseY = 0;
     var currentTransition = 0.0;
+    var transitionRate = 0.03;
     
     function increaseTransition() {
         if(currentTransition < 1.0)
-            currentTransition += 0.01;
+            currentTransition += transitionRate;
     }
 
     function decreaseTransition() {
         if(currentTransition > 0.0)
-            currentTransition -= 0.01;
+            currentTransition -= transitionRate;
     }
 
     this.load = function () {
