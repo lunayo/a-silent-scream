@@ -164,23 +164,13 @@ var FilmSection = function (shared) {
 	cameraInput.style.display = 'none';
     domElement.appendChild(cameraInput);
 
-    canvasContainer = document.createElement( 'div' );
-    canvasContainer.style.display = 'flex';
-    canvasContainer.style.height = '100%';
-    canvasContainer.style.width = '100%';
-    canvasContainer.style.justifyContent = 'flex-end';
-    canvasContainer.style.alignItems = 'flex-start';
     cameraOutput = document.createElement( 'canvas' );
-    cameraOutput.style.position = 'relative';
-    cameraOutput.style.left = '0';
-    cameraOutput.style.top = '0';
-    cameraOutput.style.maxWidth = '10%';
-    canvasContainer.appendChild(cameraOutput);
-    domElement.appendChild(canvasContainer);
+    cameraOutput.style.position = 'absolute';
+    domElement.appendChild(cameraOutput);
 
     var mouseX = 0, mouseY = 0;
     var currentTransition = 0.0;
-    var transitionRate = 0.03;
+    var transitionRate = 0.02;
     
     function increaseTransition() {
         if(currentTransition < 1.0)
@@ -276,14 +266,19 @@ var FilmSection = function (shared) {
 		renderer.domElement.style.left = '0px';
 		renderer.domElement.style.top = ( ( height - shared.viewportHeight  ) / 2 ) + 'px';
 
+        windowHeight = 120;
+        windowWidth = 160;
+    
         aspect = 480/640;
-        if (window.innerWidth > window.innerHeight) {
-            height = window.innerHeight;
+        if (windowWidth > windowHeight) {
+            height = windowHeight;
             width = height / aspect;
         } else {
-            width = window.innerWidth;
+            width = windowWidth;
             height = width * aspect;
         }
+        cameraOutput.style.top = (window.innerHeight - shared.viewportHeight) / 2 - windowHeight + 'px';
+        cameraOutput.style.left = window.innerWidth - windowWidth + 'px';
         cameraOutput.width = width;
         cameraOutput.height = height;
     };
