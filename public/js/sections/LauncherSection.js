@@ -116,7 +116,7 @@ var LauncherSection = function (shared) {
 
     text = document.createElement('p');
     text.setAttribute("class", "fade-in-text");
-    text.style.animationDelay = "3s";
+    text.style.animationDelay = "1.5s";
     textSpan = document.createElement('span');
     textSpan.textContent = "MINUTES";
     textSpan.style.fontSize = "1.3em";
@@ -132,7 +132,7 @@ var LauncherSection = function (shared) {
     text2 = document.createElement('span');
     text2.setAttribute("class", "fade-in-text");
     text2.style.fontSize = "1.3em";
-    text2.style.animationDelay = "4.5s";
+    text2.style.animationDelay = "3s";
     text2.textContent = "the loss of biodiversity events";
     text.appendChild(text2);
 
@@ -140,7 +140,7 @@ var LauncherSection = function (shared) {
 
     text4 = document.createElement('p');
     text4.setAttribute("class", "fade-in-text");
-    text4.style.animationDelay = "7.5s";
+    text4.style.animationDelay = "5s";
     text4Span = document.createElement('span');
     text4Span.textContent = "REACTION";
     text4Span.style.fontSize = "1.3em";
@@ -149,7 +149,7 @@ var LauncherSection = function (shared) {
     
     text42 = document.createElement('span');
     text42.setAttribute("class", "fade-in-text");
-    text42.style.animationDelay = "9.5s";
+    text42.style.animationDelay = "7s";
     text42.style.fontSize = "1em";
     text4Span2 = document.createElement('span');
     text4Span2.textContent = "OUTCOME";
@@ -162,7 +162,7 @@ var LauncherSection = function (shared) {
 
     text5 = document.createElement('p');
     text5.setAttribute("class", "fade-in-text");
-    text5.style.animationDelay = "12.5s";
+    text5.style.animationDelay = "9s";
     text5.style.fontSize = "1.8em";
     text5Span = document.createElement('span');
     text5Span.textContent = "REACTION";
@@ -247,43 +247,45 @@ var LauncherSection = function (shared) {
     buttonEnter.addEventListener('click', function () {
 
       startTextAnimation();
-      loading.getDomElement().style.display = 'block';
+      // loading.getDomElement().style.display = 'block';
       buttonEnter.style.display = 'none';
+      buttonStart.top = textContainer.offsetHeight + 'px';
+      buttonStart.style.animationDelay = "10s";
+      buttonStart.classList.add('text-animation'); 
 
-      isLoading = true;
+      // isLoading = true;
 
       shared.signals.load.dispatch();
 
+      // loading
       shared.emotion = new EmotionRecognition();
-      shared.signals.loadItemAdded.dispatch();
-      shared.emotion.init().then(function() {
-        shared.signals.loadItemCompleted.dispatch();
-      });
+      // shared.signals.loadItemAdded.dispatch();
+      shared.emotion.init();
 
     }, false);
     uiContainer.appendChild(buttonEnter);
 
     buttonStart = createRolloverButton("30px 0 0 85px", "/files/start_idle.png", "/files/start_rollover.png");
-    buttonStart.style.display = 'none';
+    buttonStart.style.opacity = '0';
     buttonStart.addEventListener('click', function () {
       shared.signals.showfilm.dispatch();
     }, false);
     uiContainer.appendChild(buttonStart);
 
-    loading = new LoadingBar(function () {
-      loading.getDomElement().style.display = 'none';
-      buttonStart.style.display = 'block';
-      shared.loadedContent = true;
-      isLoading = false;
-    });
+    // loading = new LoadingBar(function () {
+    //   loading.getDomElement().style.display = 'none';
+    //   buttonStart.style.display = 'block';
+    //   shared.loadedContent = true;
+    //   isLoading = false;
+    // });
 
-    loading.getDomElement().style.position = 'absolute';
-    loading.getDomElement().style.display = 'none';
+    // loading.getDomElement().style.position = 'absolute';
+    // loading.getDomElement().style.display = 'none';
 
-    uiContainer.appendChild(loading.getDomElement());
+    // uiContainer.appendChild(loading.getDomElement());
 
-    shared.signals.loadItemAdded.add(loading.addItem);
-    shared.signals.loadItemCompleted.add(loading.completeItem);
+    // shared.signals.loadItemAdded.add(loading.addItem);
+    // shared.signals.loadItemCompleted.add(loading.completeItem);
 
     if (!HandleErrors.isWebGLAndBeta) {
 
@@ -377,7 +379,7 @@ var LauncherSection = function (shared) {
 
     clouds.show();
     domElement.style.display = 'block';
-    if (!shared.loadedContent) buttonStart.style.display = 'none';
+    if (!shared.loadedContent) buttonStart.style.opacity = '0';
 
   };
 
@@ -392,23 +394,23 @@ var LauncherSection = function (shared) {
 
     }
 
-    if (buttonEnter) {
-
-      buttonEnter.style.top = '210px';
-      buttonEnter.style.left = buttonStart.style.left = ( window.innerWidth - 358 ) / 2 + 'px';
-      buttonStart.style.top = textContainer.offsetHeight + 'px';
-    }
-
     if (textContainer) {
       textContainer.style.left = ( window.innerWidth - 500 ) / 2 + 'px';
     }
 
-    if (loading) {
+    if (buttonEnter) {
 
-      loading.getDomElement().style.top = '215px';
-      loading.getDomElement().style.left = ( window.innerWidth - 300 ) / 2 + 'px';
-
+      buttonEnter.style.top = '210px';
+      buttonEnter.style.left = buttonStart.style.left = ( window.innerWidth - 358 ) / 2 + 'px';
+      buttonStart.style.top = textContainer.offsetHeight - 20 + 'px';
     }
+
+    // if (loading) {
+
+    //   loading.getDomElement().style.top = '215px';
+    //   loading.getDomElement().style.left = ( window.innerWidth - 300 ) / 2 + 'px';
+
+    // }
 
     domElement.style.width = width + 'px';
     domElement.style.height = height + 'px';
