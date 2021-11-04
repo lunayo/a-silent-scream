@@ -1,0 +1,40 @@
+.fade-in-text {
+    display: block;
+    font-family: "Pinto W00 NO_01","Trebuchet MS",Helvetica,sans-serif;
+    font-size: 1.5em;
+    color: white;
+    opacity: 0;
+  }
+
+  .text-animation {
+    animation: fadeIn ease-in 1s forwards;
+    -webkit-animation: fadeIn ease-in 1s forwards;
+    -moz-animation: fadeIn ease-in 1s forwards;
+    -o-animation: fadeIn ease-in 1s forwards;
+    -ms-animation: fadeIn ease-in 1s forwards;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  
+  @-moz-keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  
+  @-webkit-keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  
+  @-o-keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  
+  @-ms-keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }

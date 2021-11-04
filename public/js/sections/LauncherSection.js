@@ -77,8 +77,7 @@ var LauncherSection = function (shared) {
   var domElement,
       clouds, title, buttonEnter, buttonStart,
       buttonEnterImg, uiContainer, ffTitle,
-      exploreDreams, addToTheDream,
-      loading, footer, footNav;
+      loading, textContainer;
 
   var delta, time, oldTime = start_time = new Date().getTime();
 
@@ -93,6 +92,114 @@ var LauncherSection = function (shared) {
 
   var isLoading = false;
   var loadedOnce = false;
+
+  function setupTextContainer() {
+    textContainer = document.createElement('div');
+    textContainer.setAttribute("id", "text-container");
+    textContainer.style.position = 'absolute';
+
+    title = document.createElement('p');
+    title.setAttribute("class", "fade-in-text");
+    title.style.fontSize = "2em";
+    title.style.marginTop = "0";
+    titleSpan = document.createElement('span');
+    titleSpan.textContent = "NEEDS";
+    titleSpan.style.fontSize = "1.3em";
+    titleSpan2 = document.createElement('span');
+    titleSpan2.textContent = "REACTION";
+    titleSpan2.style.fontSize = "1.3em";
+    title.appendChild(document.createTextNode("This story "));
+    title.appendChild(titleSpan);
+    title.appendChild(document.createTextNode(" your "));
+    title.appendChild(titleSpan2);
+    textContainer.appendChild(title);
+
+    text = document.createElement('p');
+    text.setAttribute("class", "fade-in-text");
+    text.style.animationDelay = "3s";
+    textSpan = document.createElement('span');
+    textSpan.textContent = "MINUTES";
+    textSpan.style.fontSize = "1.3em";
+    textSpan2 = document.createElement('span');
+    textSpan2.textContent = "EXPERIENCE";
+    textSpan2.style.fontSize = "1.3em";
+
+    text.appendChild(document.createTextNode("Over the next few "));
+    text.appendChild(textSpan);
+    text.appendChild(document.createTextNode(" , you will "));
+    text.appendChild(textSpan2);
+
+    text2 = document.createElement('span');
+    text2.setAttribute("class", "fade-in-text");
+    text2.style.fontSize = "1.3em";
+    text2.style.animationDelay = "4.5s";
+    text2.textContent = "the loss of biodiversity events";
+    text.appendChild(text2);
+
+    textContainer.appendChild(text);
+
+    text4 = document.createElement('p');
+    text4.setAttribute("class", "fade-in-text");
+    text4.style.animationDelay = "7.5s";
+    text4Span = document.createElement('span');
+    text4Span.textContent = "REACTION";
+    text4Span.style.fontSize = "1.3em";
+    text4.appendChild(document.createTextNode("You will learn how your "));
+    text4.appendChild(text4Span);
+    
+    text42 = document.createElement('span');
+    text42.setAttribute("class", "fade-in-text");
+    text42.style.animationDelay = "9.5s";
+    text42.style.fontSize = "1em";
+    text4Span2 = document.createElement('span');
+    text4Span2.textContent = "OUTCOME";
+    text4Span2.style.fontSize = "1.3em";
+    text42.appendChild(document.createTextNode("can positively influences the "));
+    text42.appendChild(text4Span2);
+    text42.appendChild(document.createTextNode(" of the story."));
+    text4.appendChild(text42);
+    textContainer.appendChild(text4);
+
+    text5 = document.createElement('p');
+    text5.setAttribute("class", "fade-in-text");
+    text5.style.animationDelay = "12.5s";
+    text5.style.fontSize = "1.8em";
+    text5Span = document.createElement('span');
+    text5Span.textContent = "REACTION";
+    text5Span.style.fontSize = "1.3em";
+    text5Span2 = document.createElement('span');
+    text5Span2.textContent = "CAMERA";
+    text5Span2.style.fontSize = "1.3em";
+    text5.appendChild(document.createTextNode("Your "));
+    text5.appendChild(text5Span);
+    text5.appendChild(document.createTextNode(" will be captured by the "));
+    text5.appendChild(text5Span2);
+    text5.appendChild(document.createTextNode(","));
+
+    text6 = document.createElement('span');
+    text6.setAttribute("class", "fade-in-text");
+    text6.style.fontSize = "1em";
+    text6Span = document.createElement('span');
+    text6Span.textContent = "ON";
+    text6Span.style.fontSize = "1.3em";
+    text6.appendChild(document.createTextNode("hence, it will work best when it is turned "));
+    text6.appendChild(text6Span);
+    text6.appendChild(document.createTextNode("."));
+    text5.appendChild(text6);
+    
+    textContainer.appendChild(text5);
+
+    return textContainer;
+  }
+
+  function startTextAnimation() {
+    const elements = document.getElementsByClassName('fade-in-text');
+    elements.forEach(element => {
+      element.classList.remove('text-animation'); // reset animation
+      void element.offsetWidth; // trigger reflow
+      element.classList.add('text-animation'); // start animation
+    });
+  }
 
   // localStorage stuff
 
@@ -125,6 +232,11 @@ var LauncherSection = function (shared) {
     uiContainer.setAttribute("id", "ui-container");
     uiContainer.style.marginTop = "30px";
 
+    textContainer = setupTextContainer(uiContainer);
+    textContainer.style.top = 0;
+    textContainer.style.width = '500px';
+    uiContainer.appendChild(textContainer);
+    
     // title = document.createElement('div');
     // title.style.position = 'absolute';
     // title.innerHTML = '<img src="/files/logo_heart.png" style="display:block; margin-top:-30px;" />';
@@ -134,6 +246,7 @@ var LauncherSection = function (shared) {
     buttonEnter.style.width = 180 + 'px';
     buttonEnter.addEventListener('click', function () {
 
+      startTextAnimation();
       loading.getDomElement().style.display = 'block';
       buttonEnter.style.display = 'none';
 
@@ -214,38 +327,6 @@ var LauncherSection = function (shared) {
         loadedOnce = true;
       }
 
-      // Add shortcuts to gallery and tool
-      // addToTheDream = document.createElement("div");
-      // addToTheDream.setAttribute("class", "seen-before");
-      // addToTheDream.setAttribute("style", "background: url('files/launcher/add-trans.png') center center no-repeat; width: 145px; height: 10px;");
-      // addToTheDream.style.position = "absolute";
-      // addToTheDream.style.top = "233px";
-      // addToTheDream.style.left = (window.innerWidth / 2.0 - 354) + "px";
-      // addToTheDream.addEventListener("click", function(e) {
-
-      //   e.preventDefault();
-      //   shared.signals.showugc.dispatch();
-      //   _gaq.push(['_trackPageview', '/launcher_add_to_dream']);
-
-      // }, false);
-      // exploreDreams = document.createElement("div");
-      // exploreDreams.setAttribute("class", "seen-before");
-      // exploreDreams.setAttribute("style", "background: url('files/launcher/explore-trans.png') center center no-repeat; width: 199px; height: 10px;");
-      // exploreDreams.style.position = "absolute";
-      // exploreDreams.style.top = "233px";
-      // exploreDreams.style.left = (window.innerWidth / 2.0 + 168) + "px";
-      // exploreDreams.addEventListener("click", function(e) {
-
-      //   e.preventDefault();
-      //   // window.open("/gallery", "Gallery");
-      //   _gaq.push(['_trackPageview', '/launcher_gallery']);
-      //   window.location = "/gallery/?c=favorite";
-
-      // }, false);
-
-      // uiContainer.appendChild(addToTheDream);
-      // uiContainer.appendChild(exploreDreams);
-
     } else {
 
       localStorage.setItem("RomeSeen", true);
@@ -313,9 +394,13 @@ var LauncherSection = function (shared) {
 
     if (buttonEnter) {
 
-      buttonEnter.style.top = buttonStart.style.top = '210px';
+      buttonEnter.style.top = '210px';
       buttonEnter.style.left = buttonStart.style.left = ( window.innerWidth - 358 ) / 2 + 'px';
+      buttonStart.style.top = textContainer.offsetHeight + 'px';
+    }
 
+    if (textContainer) {
+      textContainer.style.left = ( window.innerWidth - 500 ) / 2 + 'px';
     }
 
     if (loading) {
