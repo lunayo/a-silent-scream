@@ -11,6 +11,7 @@ var EmotionRecognition = function () {
   }
 
   this.init_camera = function(videoElement, cameraWidth, cameraHeight, callback) {
+    this.videoElement = videoElement;
     this.camera = new Camera(videoElement, {
       onFrame: async () => {
         await this.faceDetection.send({image: videoElement});
@@ -51,9 +52,14 @@ var EmotionRecognition = function () {
   }
 
   this.stop_camera = function() {
-    this.camera.stop();
+    if (this.videoElement.srcObject) {
+      // now get the steam 
+      this.videoElement.pause();
+      this.videoElement.srcObject.getTracks().forEach(a => a.stop());
+      this.videoElement.srcObject = null;
+    }
   }
- 
+
   this.preprocess_input = function (tensors) {
     const resize = tensors.resizeBilinear([197, 197])
     const p = tf.tensor3d([[[93.5940, 104.7624, 129.1863]]]);
@@ -77,7 +83,7 @@ var LauncherSection = function (shared) {
   var domElement,
       clouds, title, buttonEnter, buttonStart,
       buttonEnterImg, uiContainer, ffTitle,
-      loading, textContainer;
+      loading, textContainer, cameraInput, cameraOutput;
 
   var delta, time, oldTime = start_time = new Date().getTime();
 
@@ -90,8 +96,20 @@ var LauncherSection = function (shared) {
   domElement.style.background = 'linear-gradient(top, #04142e 0%, #1d508f 35%, #5299d1 50%, #1d508f 100%)';
   domElement.style.textAlign = 'center';
 
+  cameraInput = document.createElement( 'video' );
+	cameraInput.style.display = 'none';
+  domElement.appendChild(cameraInput);
+
+  cameraOutput = document.createElement( 'canvas' );
+  cameraOutput.style.position = 'absolute';
+  cameraOutput.style.opacity = '0.6';
+  cameraOutput.style.left = '0';
+  cameraOutput.style.top = '0';
+  domElement.appendChild(cameraOutput);
+
   var isLoading = false;
   var loadedOnce = false;
+  var isCameraLoaded = false;
 
   function setupTextContainer() {
     textContainer = document.createElement('div');
@@ -193,7 +211,40 @@ var LauncherSection = function (shared) {
   }
 
   function startTextAnimation() {
-    const elements = document.getElementsByClassName('fade-in-text');
+    const elements = document.getElementById('text-container').getElementsByClassName('fade-in-text');
+    elements.forEach(element => {
+      element.classList.remove('text-animation'); // reset animation
+      void element.offsetWidth; // trigger reflow
+      element.classList.add('text-animation'); // start animation
+    });
+  }
+
+  function setupCameraText() {
+    textContainer = document.createElement('div');
+    textContainer.setAttribute("id", "camera-text-container");
+    textContainer.style.position = 'absolute';
+
+    title = document.createElement('p');
+    title.setAttribute("class", "fade-in-text");
+    title.style.fontSize = "2em";
+    title.style.marginTop = "0";
+    title.style.animationDelay = "1s";
+    titleSpan = document.createElement('span');
+    titleSpan.textContent = "SMILE";
+    titleSpan.style.fontSize = "1.3em";
+    titleSpan2 = document.createElement('span');
+    titleSpan2.textContent = "BEGIN";
+    titleSpan2.style.fontSize = "1.3em";
+    title.appendChild(titleSpan);
+    title.appendChild(document.createTextNode(" to "));
+    title.appendChild(titleSpan2);
+    textContainer.appendChild(title);
+
+    return textContainer;
+  }
+
+  function startCameraTextAnimation() {
+    const elements = document.getElementById('camera-text-container').getElementsByClassName('fade-in-text');
     elements.forEach(element => {
       element.classList.remove('text-animation'); // reset animation
       void element.offsetWidth; // trigger reflow
@@ -232,25 +283,24 @@ var LauncherSection = function (shared) {
     uiContainer.setAttribute("id", "ui-container");
     uiContainer.style.marginTop = "30px";
 
-    textContainer = setupTextContainer(uiContainer);
+    textContainer = setupTextContainer();
     textContainer.style.top = 0;
     textContainer.style.width = '500px';
     uiContainer.appendChild(textContainer);
-    
-    // title = document.createElement('div');
-    // title.style.position = 'absolute';
-    // title.innerHTML = '<img src="/files/logo_heart.png" style="display:block; margin-top:-30px;" />';
-    // uiContainer.appendChild(title);
+
+    cameraText = setupCameraText();
+    cameraText.style.top = '20px';
+    cameraText.style.width = '500px';
+    uiContainer.appendChild(cameraText);
 
     buttonEnter = createRolloverButton("10px 0 0 85px", "/files/enter_idle.png", "/files/enter_rollover.png");
     buttonEnter.style.width = 180 + 'px';
     buttonEnter.addEventListener('click', function () {
 
-      startTextAnimation();
-      // loading.getDomElement().style.display = 'block';
+      // startTextAnimation();
       buttonEnter.style.display = 'none';
       buttonStart.top = textContainer.offsetHeight + 'px';
-      buttonStart.style.animationDelay = "10s";
+      // buttonStart.style.animationDelay = "10s";
       buttonStart.classList.add('text-animation'); 
 
       // isLoading = true;
@@ -259,33 +309,73 @@ var LauncherSection = function (shared) {
 
       // loading
       shared.emotion = new EmotionRecognition();
-      // shared.signals.loadItemAdded.dispatch();
       shared.emotion.init();
 
     }, false);
     uiContainer.appendChild(buttonEnter);
 
+    loading = new LoadingBar(function () {
+      loading.getDomElement().style.display = 'none';
+      // buttonStart.style.display = 'block';
+      // shared.loadedContent = true;
+      // isLoading = false;
+    });
+
+    loading.getDomElement().style.position = 'absolute';
+    loading.getDomElement().style.display = 'none';
+
+    uiContainer.appendChild(loading.getDomElement());
+
+    shared.signals.loadItemAdded.add(loading.addItem);
+    shared.signals.loadItemCompleted.add(loading.completeItem);
+
     buttonStart = createRolloverButton("30px 0 0 85px", "/files/start_idle.png", "/files/start_rollover.png");
     buttonStart.style.opacity = '0';
     buttonStart.addEventListener('click', function () {
-      shared.signals.showfilm.dispatch();
+      isLoading = true;
+      loading.getDomElement().style.display = 'block';
+
+      buttonStart.style.display = "none";
+
+      cameraOutput.style.display = "block";
+      cameraOutput.style.zIndex = "200";
+      // show the camera
+      const cameraWidth = 640;
+      const cameraHeight = 480;
+      const colors = ['red', 'green', 'purple', 'yellow', 'blue', 'orange', 'black'];
+      const canvasCtx = cameraOutput.getContext('2d');
+      shared.emotion.init_camera(cameraInput, cameraWidth, cameraHeight, function(image, result) {
+          if(!isCameraLoaded) {
+            startCameraTextAnimation();
+            isCameraLoaded = true;
+            isLoading = false;
+            shared.signals.loadItemCompleted.dispatch();
+          }
+          width = cameraOutput.width;
+          height = cameraOutput.height;
+          canvasCtx.save();
+          canvasCtx.clearRect(0, 0, width, height);
+          canvasCtx.drawImage(image, 0, 0, width, height);
+          drawRectangle(
+              canvasCtx, result.boundingBox,
+              {color: colors[result.prediction], lineWidth: 4, fillColor: '#00000000'});
+          canvasCtx.restore();
+
+          if (result.prediction == 3) {
+            cameraOutput.style.display = 'none';
+            shared.signals.showfilm.dispatch();
+          }
+      });
+
+      shared.emotion.start_camera();
+
+      shared.signals.loadItemAdded.dispatch();
+      shared.signals.loadItemAdded.dispatch();
+      setTimeout(function(){ 
+        shared.signals.loadItemCompleted.dispatch();
+      }, 1500);  
     }, false);
     uiContainer.appendChild(buttonStart);
-
-    // loading = new LoadingBar(function () {
-    //   loading.getDomElement().style.display = 'none';
-    //   buttonStart.style.display = 'block';
-    //   shared.loadedContent = true;
-    //   isLoading = false;
-    // });
-
-    // loading.getDomElement().style.position = 'absolute';
-    // loading.getDomElement().style.display = 'none';
-
-    // uiContainer.appendChild(loading.getDomElement());
-
-    // shared.signals.loadItemAdded.add(loading.addItem);
-    // shared.signals.loadItemCompleted.add(loading.completeItem);
 
     if (!HandleErrors.isWebGLAndBeta) {
 
@@ -405,15 +495,31 @@ var LauncherSection = function (shared) {
       buttonStart.style.top = textContainer.offsetHeight - 20 + 'px';
     }
 
-    // if (loading) {
+    if (loading) {
 
-    //   loading.getDomElement().style.top = '215px';
-    //   loading.getDomElement().style.left = ( window.innerWidth - 300 ) / 2 + 'px';
+      loading.getDomElement().style.top = '215px';
+      loading.getDomElement().style.left = ( window.innerWidth - 300 ) / 2 + 'px';
 
-    // }
+    }
 
     domElement.style.width = width + 'px';
     domElement.style.height = height + 'px';
+
+    windowHeight = window.innerHeight / 2.2;
+    windowWidth = window.innerWidth / 2.2;
+
+    aspect = 480/640;
+    if (windowWidth > windowHeight) {
+        height = windowHeight;
+        width = height / aspect;
+    } else {
+        width = windowWidth;
+        height = width * aspect;
+    }
+    cameraOutput.style.top = ( window.innerHeight - height ) / 3  - 30 + 'px';;
+    cameraOutput.style.left = ( window.innerWidth - width ) / 2 + 'px';;
+    cameraOutput.width = width;
+    cameraOutput.height = height;
 
   };
 
@@ -421,6 +527,7 @@ var LauncherSection = function (shared) {
 
     clouds.hide();
     domElement.style.display = 'none';
+    shared.emotion.stop_camera();
 
   };
 
