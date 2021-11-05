@@ -84,7 +84,7 @@ var LauncherSection = function (shared) {
   var domElement,
       clouds, title, buttonEnter, buttonStart,
       buttonEnterImg, uiContainer, ffTitle,
-      loading, textContainer, cameraInput, cameraOutput;
+      loading, textContainer, cameraText, cameraInput, cameraOutput;
 
   var delta, time, oldTime = start_time = new Date().getTime();
 
@@ -236,6 +236,13 @@ var LauncherSection = function (shared) {
     });
   }
 
+function resetTextAnimation() {
+    const elements = document.getElementById('text-container').getElementsByClassName('fade-in-text');
+    elements.forEach(element => {
+      element.classList.remove('text-animation'); // reset animation
+    });
+  }
+
   function toogleCameraRequestText(isCameraOff) {
     const cameraOnElements = document.getElementById('text-container').getElementsByClassName('camera-on');
     const cameraOffElements = document.getElementById('text-container').getElementsByClassName('camera-off');
@@ -295,6 +302,13 @@ var LauncherSection = function (shared) {
     });
   }
 
+  function resetCameraTextAnimation() {
+    const elements = document.getElementById('camera-text-container').getElementsByClassName('fade-in-text');
+    elements.forEach(element => {
+      element.classList.remove('text-animation'); // reset animation
+    });
+  }
+
   // localStorage stuff
 
   this.load = function () {
@@ -341,6 +355,8 @@ var LauncherSection = function (shared) {
       startTextAnimation();
       buttonEnter.style.display = 'none';
       buttonStart.style.animationDelay = "10s";
+      buttonStart.classList.remove('text-animation'); // reset animation
+      void buttonStart.offsetWidth; // trigger reflow
       buttonStart.classList.add('text-animation'); 
 
       // isLoading = true;
@@ -378,7 +394,7 @@ var LauncherSection = function (shared) {
       .then( ( stream ) => {
         
         isLoading = true;
-        textContainer.style.display = 'none';
+        resetTextAnimation();
         loading.getDomElement().style.display = 'block';
         buttonStart.style.display = "none";
 
@@ -518,6 +534,16 @@ var LauncherSection = function (shared) {
 
     clouds.show();
     domElement.style.display = 'block';
+    textContainer.style.display = 'block';
+    cameraText.style.display = 'block';
+    isCameraLoaded = false;
+    resetTextAnimation();
+    resetCameraTextAnimation();
+    loading.reset();
+    loading.getDomElement().style.display = 'none';
+    buttonStart.style.display = "block";
+    cameraOutput.style.display = "none";
+    buttonEnter.style.display = 'block';
     if (!shared.loadedContent) buttonStart.style.opacity = '0';
 
   };
@@ -536,8 +562,8 @@ var LauncherSection = function (shared) {
       textContainer.style.left = ( window.innerWidth - 500 ) / 2 + 'px';
     }
 
-    if (cameraTextContainer) {
-      cameraTextContainer.style.left = ( window.innerWidth - 500 ) / 2 + 'px';
+    if (cameraText) {
+      cameraText.style.left = ( window.innerWidth - 500 ) / 2 + 'px';
     }
 
     if (buttonEnter) {

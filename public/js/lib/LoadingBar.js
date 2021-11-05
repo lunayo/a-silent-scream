@@ -48,6 +48,12 @@ var LoadingBar = function ( callback ) {
 
 	};
 
+	this.reset = function () {
+		totalItems = 0;
+		doneItems = 0;
+		updateProgress();
+	}
+
 	this.addItem  = function () {
 
 		totalItems ++;
@@ -64,9 +70,7 @@ var LoadingBar = function ( callback ) {
 		if ( totalItems != 0 && totalItems == doneItems ) {
 
       if (totalItems == doneItems) loadVal.style.background = "#fff";
-			setTimeout(function(){ 
-				callback();
-			}, 300);  
+	  		callback();  
 		}
 
 	};
