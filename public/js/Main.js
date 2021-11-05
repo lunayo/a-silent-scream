@@ -4,19 +4,10 @@
 	Signal = signals.Signal, currentSection,
 	launcher, film, ugc, lastBeta = 0, lastGamma = 0;
 
-	// var historySections = [
-	// 	"film",
-	// 	"explore",
-	// 	"relauncher",
-	// 	"tool"
-	// ];
-
-	// var stickyHistory = [
-	// 	'/',
-	// 	'/film',
-	// 	'/explore'
-	// ];
-	// var historyDispatches = [];
+	var stickyHistory = [
+		'/',
+		'/film'
+	];
 
 	shared = {
 
@@ -200,28 +191,28 @@
 		section.show();
 
 
-		// if ( title && path ) {
+		if ( title && path ) {
+			var i = stickyHistory.length;
 
-		// 	var i = stickyHistory.length;
+			while ( i-- ) {
 
-		// 	while ( i-- ) {
+				if ( stickyHistory[i] === path ) {
 
-		// 		if ( stickyHistory[i] === path ) {
+					path += window.location.search;
+					break;
 
-		// 			path += window.location.search;
-		// 			break;
+				}
+			}
 
-		// 		}
-		// 	}
+			if ( history ) {
 
-		// 	if ( history ) {
+				var pState = window.location.pathname.toString();
+				history.pushState( { "pState": pState }, title, path );
 
-		// 		var pState = window.location.pathname.toString();
-		// 		history.pushState( { "pState": pState }, title, path );
+			}
 
-		// 	}
-
-		// }
+		}
+		
 
 		currentSection = section;
 

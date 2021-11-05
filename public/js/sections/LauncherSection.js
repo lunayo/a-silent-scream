@@ -1,5 +1,6 @@
 var EmotionRecognition = function () {
   this.init = async function () {
+    // this.model = await tf.loadGraphModel('https://sarajida.netlify.app/model/model.json');
     this.model = await tf.loadGraphModel('http://localhost:3000/model/model.json');
     this.faceDetection = new FaceDetection({locateFile: (file) => {
       return `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.3/${file}`;
