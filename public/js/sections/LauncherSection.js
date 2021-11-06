@@ -116,6 +116,7 @@ var LauncherSection = function (shared) {
     textContainer = document.createElement('div');
     textContainer.setAttribute("id", "text-container");
     textContainer.style.top = 0;
+    textContainer.style.display = 'none';
     textContainer.style.width = '500px';
     textContainer.style.position = 'absolute';
 
@@ -175,7 +176,7 @@ var LauncherSection = function (shared) {
     text4Span2 = document.createElement('span');
     text4Span2.textContent = "OUTCOME";
     text4Span2.style.fontSize = "1.3em";
-    text42.appendChild(document.createTextNode("can positively influences the "));
+    text42.appendChild(document.createTextNode("can positively influence the "));
     text42.appendChild(text4Span2);
     text42.appendChild(document.createTextNode(" of the story."));
     text4.appendChild(text42);
@@ -228,6 +229,7 @@ var LauncherSection = function (shared) {
   }
 
   function startTextAnimation() {
+    textContainer.style.display = 'block';
     const elements = document.getElementById('text-container').getElementsByClassName('fade-in-text');
     elements.forEach(element => {
       element.classList.remove('text-animation'); // reset animation
@@ -271,6 +273,7 @@ function resetTextAnimation() {
     cameraTextContainer = document.createElement('div');
     cameraTextContainer.setAttribute("id", "camera-text-container");
     cameraTextContainer.style.position = 'absolute';
+    cameraTextContainer.style.display = 'none';
     cameraTextContainer.style.top = 0;
     cameraTextContainer.style.width = '500px';
 
@@ -293,10 +296,12 @@ function resetTextAnimation() {
     return cameraTextContainer;
   }
 
-  function startCameraTextAnimation() {
+  function startCameraTextAnimation(onFinish) {
+    cameraTextContainer.style.display = 'block';
     const elements = document.getElementById('camera-text-container').getElementsByClassName('fade-in-text');
     elements.forEach(element => {
       element.classList.remove('text-animation'); // reset animation
+      element.addEventListener("animationend", onFinish, false);
       void element.offsetWidth; // trigger reflow
       element.classList.add('text-animation'); // start animation
     });
@@ -354,6 +359,7 @@ function resetTextAnimation() {
 
       startTextAnimation();
       buttonEnter.style.display = 'none';
+      buttonStart.style.display = 'block';
       buttonStart.style.animationDelay = "10s";
       buttonStart.classList.remove('text-animation'); // reset animation
       void buttonStart.offsetWidth; // trigger reflow
@@ -405,26 +411,30 @@ function resetTextAnimation() {
         const cameraHeight = 480;
         const colors = ['red', 'green', 'purple', 'yellow', 'blue', 'orange', 'black'];
         const canvasCtx = cameraOutput.getContext('2d');
+        var isAnimationLoaded = false;
         shared.emotion.init_camera(cameraInput, cameraWidth, cameraHeight, function(image, result) {
             if(!isCameraLoaded) {
-              startCameraTextAnimation();
+              startCameraTextAnimation(function () {
+                isAnimationLoaded = true;
+              });
               isCameraLoaded = true;
               isLoading = false;
               shared.signals.loadItemCompleted.dispatch();
-            }
-            width = cameraOutput.width;
-            height = cameraOutput.height;
-            canvasCtx.save();
-            canvasCtx.clearRect(0, 0, width, height);
-            canvasCtx.drawImage(image, 0, 0, width, height);
-            drawRectangle(
-                canvasCtx, result.boundingBox,
-                {color: colors[result.prediction], lineWidth: 4, fillColor: '#00000000'});
-            canvasCtx.restore();
+            } else {
+              width = cameraOutput.width;
+              height = cameraOutput.height;
+              canvasCtx.save();
+              canvasCtx.clearRect(0, 0, width, height);
+              canvasCtx.drawImage(image, 0, 0, width, height);
+              drawRectangle(
+                  canvasCtx, result.boundingBox,
+                  {color: colors[result.prediction], lineWidth: 2, fillColor: '#00000000'});
+              canvasCtx.restore();
 
-            if (result.prediction == 3) {
-              cameraOutput.style.display = 'none';
-              shared.signals.showfilm.dispatch();
+              if (isAnimationLoaded && result.prediction == 3) {
+                cameraOutput.style.display = 'none';
+                shared.signals.showfilm.dispatch();
+              }
             }
         });
 
@@ -534,14 +544,13 @@ function resetTextAnimation() {
 
     clouds.show();
     domElement.style.display = 'block';
-    textContainer.style.display = 'block';
-    cameraText.style.display = 'block';
     isCameraLoaded = false;
     resetTextAnimation();
     resetCameraTextAnimation();
     loading.reset();
     loading.getDomElement().style.display = 'none';
-    buttonStart.style.display = "block";
+    buttonStart.style.display = "none";
+    buttonStart.classList.remove('text-animation'); 
     cameraOutput.style.display = "none";
     buttonEnter.style.display = 'block';
     if (!shared.loadedContent) buttonStart.style.opacity = '0';

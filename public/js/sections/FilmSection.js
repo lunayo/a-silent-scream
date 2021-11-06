@@ -196,7 +196,7 @@ var FilmSection = function (shared) {
             canvasCtx.drawImage(image, 0, 0, width, height);
             drawRectangle(
                 canvasCtx, result.boundingBox,
-                {color: colors[result.prediction], lineWidth: 4, fillColor: '#00000000'});
+                {color: colors[result.prediction], lineWidth: 1, fillColor: '#00000000'});
             canvasCtx.restore();
 
             if(result.prediction < 6) {
