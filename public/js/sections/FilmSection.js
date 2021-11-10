@@ -1,5 +1,84 @@
 function Transition ( sceneA, sceneB, renderer, width, height) {
 
+    function getTransitionShader(texture, videoTexture, videoTexture2) {
+        return new THREE.MeshShaderMaterial({
+
+            uniforms: {
+                tMixTexture: {
+                    type: "t",
+                    value: 0,
+                    texture: texture
+                },
+                tDiffuse1: {
+                    type: "t",
+                    value: 1,
+                    texture: videoTexture
+                },
+                tDiffuse2: {
+                    type: "t",
+                    value: 2,
+                    texture: videoTexture2
+                },
+                mixRatio: {
+                    type: "f",
+                    value: 0.5
+                },
+                threshold: {
+                    type: "f",
+                    value: 0.1
+                },
+                useTexture: {
+                    type: "i",
+                    value: 1,
+                }
+            },
+            vertexShader: [
+    
+                "varying vec2 vUv;",
+    
+                "void main() {",
+    
+                "vUv = vec2( uv.x, 1.0 - uv.y );",
+                "gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
+    
+                "}"
+    
+            ].join("\n"),
+            fragmentShader: [
+    
+                "uniform float mixRatio;",
+    
+                "uniform sampler2D tDiffuse2;",
+                "uniform sampler2D tDiffuse1;",
+                "uniform sampler2D tMixTexture;",
+                
+                "uniform int useTexture;",
+                "uniform float threshold;",
+    
+                "varying vec2 vUv;",
+    
+                "void main() {",
+    
+                "vec4 texel1 = texture2D( tDiffuse1, vUv );",
+                "vec4 texel2 = texture2D( tDiffuse2, vUv );",
+                "if (useTexture==1) {",
+                    
+                    "vec4 transitionTexel = texture2D( tMixTexture, vUv );",
+                    "float r = mixRatio * (1.0 + threshold * 2.0) - threshold;",
+                    "float mixf=clamp((transitionTexel.r - r)*(1.0/threshold), 0.0, 1.0);",
+                    "gl_FragColor = mix( texel1, texel2, mixf );",
+                "} else {",
+                    
+                    "gl_FragColor = mix( texel2, texel1, mixRatio );",
+                    
+                "}",
+            "}"
+    
+            ].join("\n")
+    
+        });
+    }
+
 	this.scene = new THREE.Scene();
 	
 	this.camera = new THREE.Camera( 50, width / height, 1, 1000 );
@@ -9,82 +88,7 @@ function Transition ( sceneA, sceneB, renderer, width, height) {
     this.sceneA = sceneA;
     this.sceneB = sceneB;
 				
-	this.quadmaterial = new THREE.MeshShaderMaterial({
-
-		uniforms: {
-			tMixTexture: {
-				type: "t",
-				value: 0,
-                texture: this.texture
-			},
-			tDiffuse1: {
-				type: "t",
-				value: 1,
-                texture: this.sceneA.renderTarget
-			},
-			tDiffuse2: {
-				type: "t",
-				value: 2,
-                texture: this.sceneB.renderTarget
-			},
-			mixRatio: {
-				type: "f",
-				value: 0.5
-			},
-			threshold: {
-				type: "f",
-				value: 0.1
-			},
-			useTexture: {
-				type: "i",
-				value: 1,
-			}
-		},
-		vertexShader: [
-
-			"varying vec2 vUv;",
-
-			"void main() {",
-
-			"vUv = vec2( uv.x, 1.0 - uv.y );",
-			"gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
-
-			"}"
-
-		].join("\n"),
-		fragmentShader: [
-
-			"uniform float mixRatio;",
-
-			"uniform sampler2D tDiffuse2;",
-            "uniform sampler2D tDiffuse1;",
-			"uniform sampler2D tMixTexture;",
-			
-			"uniform int useTexture;",
-			"uniform float threshold;",
-
-			"varying vec2 vUv;",
-
-			"void main() {",
-
-			"vec4 texel1 = texture2D( tDiffuse1, vUv );",
-			"vec4 texel2 = texture2D( tDiffuse2, vUv );",
-			"if (useTexture==1) {",
-				
-				"vec4 transitionTexel = texture2D( tMixTexture, vUv );",
-				"float r = mixRatio * (1.0 + threshold * 2.0) - threshold;",
-				"float mixf=clamp((transitionTexel.r - r)*(1.0/threshold), 0.0, 1.0);",
-				"gl_FragColor = mix( texel1, texel2, mixf );",
-			"} else {",
-				
-				"gl_FragColor = mix( texel2, texel1, mixRatio );",
-				
-			"}",
-		"}"
-
-		].join("\n")
-
-	});	
+	this.quadmaterial = getTransitionShader(this.texture, this.sceneA.renderTarget, this.sceneB.renderTarget);
 	this.needChange = false;
     const quadgeometry = new THREE.Plane( 480, 272, 19, 9 );
 	
@@ -120,6 +124,79 @@ function Transition ( sceneA, sceneB, renderer, width, height) {
 }
 
 function VideoScene(source, renderer, width, height, muted) {
+
+    function getHeatEffect(videoTexture) {
+        return new THREE.MeshShaderMaterial({
+            uniforms: {
+                "time": { type: "f", value:0 },
+                "map": { type: "t", value:0, texture: videoTexture }
+            },
+            vertexShader: [
+    
+                "varying vec2 vUv;",
+    
+                "void main() {",
+    
+                "vUv = vec2( uv.x, uv.y );",
+                "gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
+    
+                "}"
+    
+            ].join("\n"),
+            fragmentShader: [
+                "uniform sampler2D map;",
+				"varying vec2 vUv;",
+
+				"void main() {",
+
+					"vec4 color, tmp, add;",
+
+					// "vec2 uv = vUv + vec2( sin( vUv.y * 100.0 ), sin( vUv.x * 100.0 )) * 0.0005;",
+					"vec2 uv = vUv;",
+
+					"color = texture2D( map, uv );",
+
+					"float param1 = 0.0009;",
+					"float param2 = 0.001;",
+
+					"add = tmp = texture2D( map, uv + vec2( param1, param1 ));", 
+					"if( tmp.r < color.r ) color = tmp;",
+
+					"add += tmp = texture2D( map, uv + vec2( -param1, param1 ));",
+					"if( tmp.r < color.r ) color = tmp;",
+
+					"add += tmp = texture2D( map, uv + vec2( -param1, -param1 ));",
+					"if( tmp.r < color.r ) color = tmp;",
+
+					"add += tmp = texture2D( map, uv + vec2( param1, -param1 ));",
+					"if( tmp.r < color.r ) color = tmp;",
+
+					"add += tmp = texture2D( map, uv + vec2( param2, 0.0 ));",
+					"if( tmp.r < color.r ) color = tmp;",
+
+					"add += tmp = texture2D( map, uv + vec2( -param2, 0.0 ));",
+					"if( tmp.r < color.r ) color = tmp;",
+
+					"add += tmp = texture2D( map, uv + vec2( 0, param2 ));",
+					"if( tmp.r < color.r ) color = tmp;",
+
+					"add += tmp = texture2D( map, uv + vec2( 0, -param2 ));",
+					"if( tmp.r < color.r ) color = tmp;",
+
+                    "color = color * color + add * 0.5 / 8.0;",
+                    "if ( color.r < 0.2)",
+                    "color += vec4(0.2, 0.0, 0.0, 1.0);",
+					"gl_FragColor = color;",
+
+					// "gl_FragColor = texture2D( map, uv );",
+
+				"}"
+    
+            ].join("\n")
+    
+        });
+    }
+
     // CAMERA
     this.camera = new THREE.Camera( 50, width / height, 1, 1000 );
     this.camera.position.z = 200;
@@ -135,7 +212,9 @@ function VideoScene(source, renderer, width, height, muted) {
     this.texture = new THREE.Texture( this.video );
     this.texture.minFilter = THREE.LinearFilter;
     this.texture.magFilter = THREE.LinearFilter;
+    this.quadmaterial = getHeatEffect(this.texture);
     const mesh = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { map: this.texture, depthTest: false } ) );
+    // const mesh = new THREE.Mesh( geometry, this.quadmaterial );
     this.scene.addChild( mesh );
 
     this.renderTarget = new THREE.WebGLRenderTarget( width, height );
@@ -166,6 +245,7 @@ var FilmSection = function (shared) {
 
     cameraOutput = document.createElement( 'canvas' );
     cameraOutput.style.position = 'absolute';
+    cameraOutput.style.opacity = '0';
     domElement.appendChild(cameraOutput);
 
     var mouseX = 0, mouseY = 0;
@@ -180,6 +260,13 @@ var FilmSection = function (shared) {
     function decreaseTransition() {
         if(currentTransition > 0.0)
             currentTransition -= transitionRate;
+    }
+
+    function showCamera() {
+        cameraOutput.classList.remove('camera-animation'); // reset animation
+        void cameraOutput.offsetWidth; // trigger reflow
+        cameraOutput.classList.add('camera-animation'); // start animation
+        shared.emotion.start_camera();
     }
 
     this.load = function () {
@@ -199,11 +286,11 @@ var FilmSection = function (shared) {
                 {color: colors[result.prediction], lineWidth: 1, fillColor: '#00000000'});
             canvasCtx.restore();
 
-            if(result.prediction < 6) {
-                increaseTransition();
-            } else {
-                decreaseTransition();
-            }
+            // if(result.prediction < 6) {
+            //     increaseTransition();
+            // } else {
+            //     decreaseTransition();
+            // }
         });
 
 
@@ -254,7 +341,10 @@ var FilmSection = function (shared) {
 
 		}, 1000 / 30 );
 
-        shared.emotion.start_camera();
+        setTimeout(function(){ 
+
+            showCamera();
+        }, 10000);  
     };
 
     this.resize = function (width, height) {
