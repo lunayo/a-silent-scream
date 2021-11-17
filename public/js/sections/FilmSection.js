@@ -81,7 +81,7 @@ function Transition ( sceneA, sceneB, renderer, width, height) {
 
 	this.scene = new THREE.Scene();
 	
-	this.camera = new THREE.Camera( 50, width / height, 1, 1000 );
+	this.camera = new THREE.Camera( 68, width / height, 1, 1000 );
     this.camera.position.z = 200;
 
     this.texture = THREE.ImageUtils.loadTexture('files/textures/transition4.png');
@@ -90,7 +90,7 @@ function Transition ( sceneA, sceneB, renderer, width, height) {
 				
 	this.quadmaterial = getTransitionShader(this.texture, this.sceneA.renderTarget, this.sceneB.renderTarget);
 	this.needChange = false;
-    const quadgeometry = new THREE.Plane( 480, 272, 19, 9 );
+    const quadgeometry = new THREE.Plane( 480, 270 );
 	
 	this.quad = new THREE.Mesh(quadgeometry, this.quadmaterial);
 	this.scene.addChild(this.quad);
@@ -123,7 +123,7 @@ function Transition ( sceneA, sceneB, renderer, width, height) {
 	}
 }
 
-function VideoScene(source, renderer, width, height, muted) {
+function VideoScene(source, renderer, width, height, muted, callback) {
 
     function getHeatEffect(videoTexture) {
         return new THREE.MeshShaderMaterial({
@@ -198,7 +198,7 @@ function VideoScene(source, renderer, width, height, muted) {
     }
 
     // CAMERA
-    this.camera = new THREE.Camera( 50, width / height, 1, 1000 );
+    this.camera = new THREE.Camera( 90, width / height, 1, 1000 );
     this.camera.position.z = 200;
     // SCENE
     this.scene = new THREE.Scene();
@@ -207,12 +207,17 @@ function VideoScene(source, renderer, width, height, muted) {
     this.video.autobuffer = true;
     this.video.muted = muted;
     this.video.src = source;
+    this.video.ontimeupdate = function() { 
+        if(callback) {
+            callback(this.video.currentTime); 
+        }
+    }.bind(this);
 
-    const geometry = new THREE.Plane( 480, 272, 19, 9 );
+    const geometry = new THREE.Plane( 480, 270 );
     this.texture = new THREE.Texture( this.video );
     this.texture.minFilter = THREE.LinearFilter;
     this.texture.magFilter = THREE.LinearFilter;
-    this.quadmaterial = getHeatEffect(this.texture);
+    // this.quadmaterial = getHeatEffect(this.texture);
     const mesh = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { map: this.texture, depthTest: false } ) );
     // const mesh = new THREE.Mesh( geometry, this.quadmaterial );
     this.scene.addChild( mesh );
@@ -250,7 +255,7 @@ var FilmSection = function (shared) {
 
     var mouseX = 0, mouseY = 0;
     var currentTransition = 0.0;
-    var transitionRate = 0.02;
+    var transitionRate = 0.03;
     
     function increaseTransition() {
         if(currentTransition < 1.0)
@@ -267,6 +272,11 @@ var FilmSection = function (shared) {
         void cameraOutput.offsetWidth; // trigger reflow
         cameraOutput.classList.add('camera-animation'); // start animation
         shared.emotion.start_camera();
+    }
+
+    function hideCamera() {
+        cameraOutput.classList.remove('camera-animation'); // reset animation
+        shared.emotion.stop_camera();
     }
 
     this.load = function () {
@@ -286,16 +296,16 @@ var FilmSection = function (shared) {
                 {color: colors[result.prediction], lineWidth: 1, fillColor: '#00000000'});
             canvasCtx.restore();
 
-            // if(result.prediction < 6) {
-            //     increaseTransition();
-            // } else {
-            //     decreaseTransition();
-            // }
+            if(result.prediction < 6) {
+                increaseTransition();
+            } else {
+                decreaseTransition();
+            }
         });
 
 
         shared.baseWidth = 1024;
-        shared.baseHeight = 436;
+        shared.baseHeight = 576;
         shared.viewportWidth = shared.baseWidth * ( window.innerWidth / shared.baseWidth );
 	    shared.viewportHeight = shared.baseHeight * ( window.innerWidth / shared.baseWidth );
 
@@ -314,8 +324,18 @@ var FilmSection = function (shared) {
         renderer.autoClear = false;
         shared.renderer = renderer;
 
-        videoScene = new VideoScene('videos/test.mp4', renderer, shared.viewportWidth, shared.viewportHeight, false);
-        videoScene2 = new VideoScene('videos/inverted.mp4', renderer, shared.viewportWidth, shared.viewportHeight, true);
+        var isCameraShown = false;
+        videoScene = new VideoScene('videos/calm-compressed.mp4', renderer, shared.viewportWidth, shared.viewportHeight, false, function(currentTime) {
+            if(currentTime > 18 && !isCameraShown) {
+                showCamera();
+                isCameraShown = true;
+            }
+            if(currentTime > 64 && isCameraShown) {
+                currentTransition = 0.0;
+                hideCamera();
+            }
+        });
+        videoScene2 = new VideoScene('videos/agitated-compressed.mp4', renderer, shared.viewportWidth, shared.viewportHeight, true, null);
 
         transition = new Transition(videoScene, videoScene2, renderer, shared.viewportWidth, shared.viewportHeight);
     }
@@ -340,11 +360,6 @@ var FilmSection = function (shared) {
 			}
 
 		}, 1000 / 30 );
-
-        setTimeout(function(){ 
-
-            showCamera();
-        }, 10000);  
     };
 
     this.resize = function (width, height) {
@@ -356,8 +371,8 @@ var FilmSection = function (shared) {
 		renderer.domElement.style.left = '0px';
 		renderer.domElement.style.top = ( ( height - shared.viewportHeight  ) / 2 ) + 'px';
 
-        windowHeight = 120;
-        windowWidth = 160;
+        windowHeight = Math.min(120, shared.viewportHeight * 0.2);
+        windowWidth = windowHeight / 0.75;
     
         aspect = 480/640;
         if (windowWidth > windowHeight) {
@@ -367,7 +382,7 @@ var FilmSection = function (shared) {
             width = windowWidth;
             height = width * aspect;
         }
-        cameraOutput.style.top = (window.innerHeight - shared.viewportHeight) / 2 - windowHeight + 'px';
+        cameraOutput.style.top = (window.innerHeight - shared.viewportHeight * 0.7) / 2 - windowHeight + 'px';
         cameraOutput.style.left = window.innerWidth - windowWidth + 'px';
         cameraOutput.width = width;
         cameraOutput.height = height;

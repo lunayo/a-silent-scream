@@ -502,13 +502,13 @@ function resetTextAnimation() {
 
 
     // Implemented Footer.js
-    // footer = document.createElement('div');
-    // footer.style.position = 'absolute';
-    // footer.style.left = '0';
-    // footer.style.bottom = '0';
-    // footer.style.width = "100%";
-    // footNav = new Footer(footer);
-    // domElement.appendChild(footer);
+    footer = document.createElement('div');
+    footer.style.position = 'absolute';
+    footer.style.left = '0';
+    footer.style.bottom = '0';
+    footer.style.width = "100%";
+    footNav = new Footer(footer);
+    domElement.appendChild(footer);
 
     function createRolloverButton(margin, imgIdle, imgRoll) {
 
