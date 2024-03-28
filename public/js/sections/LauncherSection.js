@@ -112,6 +112,7 @@ var LauncherSection = function (shared) {
   var loadedOnce = false;
   var isCameraLoaded = false;
 
+  var textContainer;
   function setupTextContainer() {
     textContainer = document.createElement('div');
     textContainer.setAttribute("id", "text-container");
@@ -124,113 +125,40 @@ var LauncherSection = function (shared) {
     title.setAttribute("class", "fade-in-text");
     title.style.fontSize = "2em";
     title.style.marginTop = "0";
-    titleSpan = document.createElement('span');
-    titleSpan.textContent = "NEEDS";
-    titleSpan.style.fontSize = "1.3em";
-    titleSpan2 = document.createElement('span');
-    titleSpan2.textContent = "REACTION";
-    titleSpan2.style.fontSize = "1.3em";
-    title.appendChild(document.createTextNode("This story "));
-    title.appendChild(titleSpan);
-    title.appendChild(document.createTextNode(" your "));
-    title.appendChild(titleSpan2);
+    title.appendChild(document.createTextNode("Biological diversity is messy."));
     textContainer.appendChild(title);
 
     text = document.createElement('p');
     text.setAttribute("class", "fade-in-text");
     text.style.animationDelay = "1.5s";
-    textSpan = document.createElement('span');
-    textSpan.textContent = "MINUTES";
-    textSpan.style.fontSize = "1.3em";
-    textSpan2 = document.createElement('span');
-    textSpan2.textContent = "EXPERIENCE";
-    textSpan2.style.fontSize = "1.3em";
-
-    text.appendChild(document.createTextNode("Over the next few "));
-    text.appendChild(textSpan);
-    text.appendChild(document.createTextNode(" , you will "));
-    text.appendChild(textSpan2);
-
-    text2 = document.createElement('span');
-    text2.setAttribute("class", "fade-in-text");
-    text2.style.fontSize = "1.3em";
-    text2.style.animationDelay = "3s";
-    text2.textContent = "the loss of biodiversity events";
-    text.appendChild(text2);
-
+    text.appendChild(document.createTextNode("It walks, it crawls, it swims, it swoops, it buzzes."));
     textContainer.appendChild(text);
 
     text4 = document.createElement('p');
     text4.setAttribute("class", "fade-in-text");
     text4.style.animationDelay = "5s";
-    text4Span = document.createElement('span');
-    text4Span.textContent = "REACTION";
-    text4Span.style.fontSize = "1.3em";
-    text4.appendChild(document.createTextNode("You will learn how your "));
-    text4.appendChild(text4Span);
+    text4.appendChild(document.createTextNode("But extinction is silent,"));
     
     text42 = document.createElement('span');
     text42.setAttribute("class", "fade-in-text");
     text42.style.animationDelay = "6.5s";
     text42.style.fontSize = "1em";
-    text4Span2 = document.createElement('span');
-    text4Span2.textContent = "OUTCOME";
-    text4Span2.style.fontSize = "1.3em";
-    text42.appendChild(document.createTextNode("can positively influence the "));
-    text42.appendChild(text4Span2);
-    text42.appendChild(document.createTextNode(" of the story."));
-    text4.appendChild(text42);
+    text42.appendChild(document.createTextNode(" and it has no voice other than our own."));
     textContainer.appendChild(text4);
 
     text5 = document.createElement('p');
-    text5.setAttribute("class", "fade-in-text camera-on");
+    text5.setAttribute("class", "fade-in-text");
     text5.style.animationDelay = "8.5s";
     text5.style.fontSize = "1.8em";
-    text5Span = document.createElement('span');
-    text5Span.textContent = "REACTION";
-    text5Span.style.fontSize = "1.3em";
-    text5Span2 = document.createElement('span');
-    text5Span2.textContent = "CAMERA";
-    text5Span2.style.fontSize = "1.3em";
-    text5.appendChild(document.createTextNode("Your "));
-    text5.appendChild(text5Span);
-    text5.appendChild(document.createTextNode(" will be captured by the "));
-    text5.appendChild(text5Span2);
-    text5.appendChild(document.createTextNode(","));
-
-    text6 = document.createElement('span');
-    text6.setAttribute("class", "fade-in-text camera-on");
-    text6.style.fontSize = "1em";
-    text6Span = document.createElement('span');
-    text6Span.textContent = "ON";
-    text6Span.style.fontSize = "1.3em";
-    text6.appendChild(document.createTextNode("hence, it will work best when it is turned "));
-    text6.appendChild(text6Span);
-    text6.appendChild(document.createTextNode("."));
-    text5.appendChild(text6);
-
+    text5.appendChild(document.createTextNode("- Paul Hawken"));
     textContainer.appendChild(text5);
-
-    text6Alt = document.createElement('span');
-    text6Alt.setAttribute("class", "fade-in-text camera-off");
-    text6Alt.style.display = 'none';
-    text6Alt.style.fontSize = "1.8em";
-    text6AltSpan = document.createElement('span');
-    text6AltSpan.textContent = "CAMERA";
-    text6AltSpan.style.fontSize = "1.3em";
-    text6Alt.appendChild(document.createTextNode("Looks like you have your "));
-    text6Alt.appendChild(text6AltSpan);
-    text6Alt.appendChild(document.createTextNode(" blocked from being used on this page."));
-    text6Alt.appendChild(document.createTextNode(" Go to your browser settings to change that."));
-    
-    textContainer.appendChild(text6Alt);
 
     return textContainer;
   }
 
   function startTextAnimation() {
     textContainer.style.display = 'block';
-    const elements = document.getElementById('text-container').getElementsByClassName('fade-in-text');
+    const elements = Array.from(document.getElementById('text-container').getElementsByClassName('fade-in-text'));
     elements.forEach(element => {
       element.classList.remove('text-animation'); // reset animation
       void element.offsetWidth; // trigger reflow
@@ -239,15 +167,15 @@ var LauncherSection = function (shared) {
   }
 
 function resetTextAnimation() {
-    const elements = document.getElementById('text-container').getElementsByClassName('fade-in-text');
+    const elements = Array.from(document.getElementById('text-container').getElementsByClassName('fade-in-text'));
     elements.forEach(element => {
       element.classList.remove('text-animation'); // reset animation
     });
   }
 
   function toogleCameraRequestText(isCameraOff) {
-    const cameraOnElements = document.getElementById('text-container').getElementsByClassName('camera-on');
-    const cameraOffElements = document.getElementById('text-container').getElementsByClassName('camera-off');
+    const cameraOnElements = Array.from(document.getElementById('text-container').getElementsByClassName('camera-on'));
+    const cameraOffElements = Array.from(document.getElementById('text-container').getElementsByClassName('camera-off'));
     if(isCameraOff) {
       cameraOnElements.forEach(element => {
         element.style.display = 'none';
@@ -298,7 +226,7 @@ function resetTextAnimation() {
 
   function startCameraTextAnimation(onFinish) {
     cameraTextContainer.style.display = 'block';
-    const elements = document.getElementById('camera-text-container').getElementsByClassName('fade-in-text');
+    const elements = Array.from(document.getElementById('camera-text-container').getElementsByClassName('fade-in-text'));
     elements.forEach(element => {
       element.classList.remove('text-animation'); // reset animation
       element.addEventListener("animationend", onFinish, false);
@@ -308,7 +236,7 @@ function resetTextAnimation() {
   }
 
   function resetCameraTextAnimation() {
-    const elements = document.getElementById('camera-text-container').getElementsByClassName('fade-in-text');
+    const elements = Array.from(document.getElementById('camera-text-container').getElementsByClassName('fade-in-text'));
     elements.forEach(element => {
       element.classList.remove('text-animation'); // reset animation
     });
